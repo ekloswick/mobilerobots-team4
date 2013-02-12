@@ -1,0 +1,17 @@
+<package>
+  <description brief="jailbreak">
+
+     jailbreak
+
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/jailbreak</url>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="turtlebot_node"/>
+
+</package>
+
+

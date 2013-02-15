@@ -37,6 +37,12 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 	int range = 15, lowestX = blobsIn.image_width, highestX = 0;
 	for (int i = 0; i < blobsIn.blob_count; ++i)
 	{
+		// check for thin "false postiive" blobs
+		if (blobsIn.blobs[i].area < 50)
+		{
+			continue;
+		}
+
 		if (blobsIn.blobs[i].red == red && blobsIn.blobs[i].green == green && blobsIn.blobs[i].blue == blue)
 		{
 			if (state < 0)
@@ -81,9 +87,6 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 	}
 
 	// if blobs take half of screen width, back up
-	printf("Blob difference: %d Image Width: %d\n", highestX - lowestX, blobsIn.image_width);
-	printf("Highest: %d Lowest: %d\n", highestX, lowestX);
-
 	if (highestX - lowestX < 0) {}
 	else if (highestX - lowestX > blobsIn.image_width * 0.4)
 	{
@@ -118,8 +121,12 @@ int main(int argc, char **argv){
 	std::string bacon; 			
 	n.getParam("seek_visit_order", bacon);
 
-	int order [] = {3,1,2};
+	// parse the parameter
+	int order [3];
 	int current = 0;
+	order[0] = atoi(bacon.substr(0,1).c_str());
+	order[1] = atoi(bacon.substr(2,1).c_str());
+	order[2] = atoi(bacon.substr(4,1).c_str());
 
 
 	while (ros::ok()) //runtime loop
@@ -132,14 +139,12 @@ int main(int argc, char **argv){
 			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;
 			state--;
 
-			//if (state <= -5)
-			//{
-				//current++;
-				sleep(2);
+			if (state <= -5)
+			{
 				state = 0;
 				if (current == 3)
 					exit(1);
-			//}
+			}
 		}	
 		else if (state == -1) // stopped
 		{
@@ -169,59 +174,21 @@ int main(int argc, char **argv){
 			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;	
 		}
 
-		//n.getParam("/seek_visit_order", seekColor);
-		//printf("PARAMETER IS %s\n", bacon);
-
 		// orange
-		if (order[current] == 0)
+		if (order[current] == 1)
 		{
 			red = 255; green = 0; blue = 0;
 		}
 		// green
-		else if (order[current] == 1)
+		else if (order[current] == 2)
 		{
 			red = 0; green = 255; blue = 0;
 		}
 		// pink
-		else if (order[current] == 2/*rosparam::getParam("seek_visit_order") == "2"*/)
+		else if (order[current] == 3)
 		{
 			red = 0; green = 0; blue = 255;
 		}
-		printf("STATE: %d Red: %d Green: %d Blue: %d\n", state, red, green, blue);
-
-
-
-
-
-
-
-		/*if (bump == true || state > 0) {
-			if (bump == true) {
-				state = 15;
-				random = (rand()%2-0.5)*2;
-			}
-
-			if (state > 10) {
-				ROS_INFO("hello create, you have bumped into something");
-				t.linear.x = -1.0; t.linear.y = 0; t.linear.z = 0;
-				t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;
-				state--;
-			} else if (state > 0) {
-				ROS_INFO("THIS IS THE TURN STATJIEOFJIDSOFJDSIOG");
-				t.linear.x = 0; t.linear.y = 0; t.linear.z = 0;
-				t.angular.x = 0; t.angular.y = 0; t.angular.z = random;
-				state--;
-			}
-			bump = false;
-		}
-		else {
-			ROS_INFO("hello create, you can spin now");
-			t.linear.x = 1; t.linear.y = 0; t.linear.z = 0;
-			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;
-		}*/
-
-
-		//ROS_INFO("HELLO THERE!");
 	 
 		// Publish to our geometry message.
 		twist_pub.publish(t);

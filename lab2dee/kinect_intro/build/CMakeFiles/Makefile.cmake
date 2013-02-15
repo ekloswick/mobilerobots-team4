@@ -37,13 +37,11 @@ SET(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-2.8/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/share/cmake-2.8/Modules/FindPackageMessage.cmake"
   "/usr/share/cmake-2.8/Modules/FindPythonInterp.cmake"
-  "/usr/share/cmake-2.8/Modules/FindwxWidgets.cmake"
   "/usr/share/cmake-2.8/Modules/Platform/Linux-GNU-C.cmake"
   "/usr/share/cmake-2.8/Modules/Platform/Linux-GNU-CXX.cmake"
   "/usr/share/cmake-2.8/Modules/Platform/Linux-GNU.cmake"
   "/usr/share/cmake-2.8/Modules/Platform/Linux.cmake"
   "/usr/share/cmake-2.8/Modules/Platform/UnixPaths.cmake"
-  "/usr/share/cmake-2.8/Modules/UsewxWidgets.cmake"
   )
 
 # The corresponding makefile is:
@@ -64,12 +62,10 @@ SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/ROSBUILD_gensrv_cpp.dir/DependInfo.cmake"
   "CMakeFiles/ROSBUILD_gensrv_lisp.dir/DependInfo.cmake"
   "CMakeFiles/clean-test-results.dir/DependInfo.cmake"
-  "CMakeFiles/cmvision.dir/DependInfo.cmake"
-  "CMakeFiles/colorgui.dir/DependInfo.cmake"
+  "CMakeFiles/kinect_intro.dir/DependInfo.cmake"
   "CMakeFiles/rosbuild_precompile.dir/DependInfo.cmake"
   "CMakeFiles/rosbuild_premsgsrvgen.dir/DependInfo.cmake"
   "CMakeFiles/rospack_genmsg.dir/DependInfo.cmake"
-  "CMakeFiles/rospack_genmsg_all.dir/DependInfo.cmake"
   "CMakeFiles/rospack_genmsg_libexe.dir/DependInfo.cmake"
   "CMakeFiles/rospack_gensrv.dir/DependInfo.cmake"
   "CMakeFiles/test.dir/DependInfo.cmake"

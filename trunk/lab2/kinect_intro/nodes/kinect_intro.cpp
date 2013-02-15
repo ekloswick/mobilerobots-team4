@@ -16,6 +16,9 @@
 #include <time.h>
 
 bool bump = false;
+bool turn = true;
+
+int red = 0, green = 0, blue = 0;
 
 /**
 * Callback for subscription to sensor_state (which controls bump sensor)
@@ -26,10 +29,24 @@ void bumpCallBack(const turtlebot_node::TurtlebotSensorState& msg){
 }
 
 void blobsCallBack(const cmvision::Blobs& blobIn) {
-	//blobsIn.blob_count = blobsIn.size();
-	//blobsIn.blobs[] =
+	number = blobsIn.blob_count
 
-	 
+	//for each blob in blobs[]
+	for (int i = 0; i < number; ++i)
+	{
+		currentblob = blobsIn.blobs[i];
+		if (currentblob.red == red && currentblob.green == green && currentblob.blue == blue)
+		{
+			int range = 5;
+			if (currentblob.x > (blobsIn.image_width/2) - range && currentblob.x < (blobsIn.image_width/2) + range)
+			{
+				ROS_INFO("Found a blob in the center");
+				turn = false;
+			}
+			// current calcuations
+			
+		}
+	}
 }
 
 int main(int argc, char **argv){
@@ -61,6 +78,47 @@ int main(int argc, char **argv){
 
 	while (ros::ok()) //runtime loop
 	{
+		if (turn) // turn until color is found
+		{
+			t.linear.x = 0; t.linear.y = 0; t.linear.z = 0;
+			t.angular.x = 0; t.angular.y = 0; t.angular.z = 1;
+		}
+		else // go towards the found color
+		{
+			t.linear.x = 1.0; t.linear.y = 0; t.linear.z = 0;
+			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;	
+		}
+
+		// green
+		if (rosparam::getParam("seek_visit_order") == "3")
+		{
+			red = 0; green = 255; blue = 0;
+		}
+
+
+
+
+
+
+
+		/*/ pink
+		else if (rosparam::getParam("seek_visit_order") == "2")
+		{
+			red = 255; green = 0; blue = 0;
+		}
+		// orange
+		else if (rosparam::getParam("seek_visit_order") == "1")
+		{
+			red = 100; green = 0; blue = 0;
+		}*/
+
+
+
+
+
+
+
+
 		/*if (bump == true || state > 0) {
 			if (bump == true) {
 				state = 15;
@@ -87,7 +145,7 @@ int main(int argc, char **argv){
 		}*/
 
 
-		ROS_INFO("HELLO THERE!");
+		//ROS_INFO("HELLO THERE!");
 	 
 		// Publish to our geometry message.
 		twist_pub.publish(t);
@@ -95,7 +153,7 @@ int main(int argc, char **argv){
 		// Call our callback functions at this point if messages are available.
 		ros::spinOnce();
 	 
-    // Sleep for remaining leftover time in a cycle.
+   		// Sleep for remaining leftover time in a cycle.
 		loop_rate.sleep();
 	}
 

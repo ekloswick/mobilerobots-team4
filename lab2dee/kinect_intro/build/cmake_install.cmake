@@ -1,4 +1,4 @@
-# Install script for directory: /afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro
+# Install script for directory: /afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,7 +38,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/build/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/build/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)

@@ -6,15 +6,15 @@
 
 #IncludeRegexTransform: 
 
-/afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/kinect_intro.cpp
+/afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/kinect_intro.cpp
 ros/ros.h
-/afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/ros/ros.h
+/afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/ros/ros.h
 geometry_msgs/Twist.h
-/afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/geometry_msgs/Twist.h
+/afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/geometry_msgs/Twist.h
 iostream
 -
 std_msgs/String.h
-/afs/nd.edu/user34/ekloswic/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/std_msgs/String.h
+/afs/nd.edu/user31/ccahilla/Private/AMR_WORKSPACE/mobilerobots-team4/lab2dee/kinect_intro/nodes/std_msgs/String.h
 turtlebot_node/TurtlebotSensorState.h
 -
 string

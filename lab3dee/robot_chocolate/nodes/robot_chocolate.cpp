@@ -1,4 +1,4 @@
-/************************************************************
+	/************************************************************
  * Name: Robot_Chocolate.cpp
  ***********************************************************/
 #include "ros/ros.h"
@@ -35,8 +35,6 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 	int range = 15, lowestX = blobsIn.image_width, highestX = 0;
 	for (int i = 0; i < blobsIn.blob_count; ++i)
 	{
-		cmvision::Blobs bib = blobsIn.blobs[i];
-
 		// check for thin "false postiive" blobs
 		if (blobsIn.blobs[i].area < 50)
 		{
@@ -96,13 +94,51 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 
 void cloudCallBack(const pcl::PointCloud::ConstPtr& cloud)
 {
+	//X,Y,Z of the centroid
+	double x = 0.0;
+	double y = 0.0;
+	double z = 0.0;
+
+	//Number of points observed
+	unsigned int n = 0;
+
 	BOOST_FOREACH(const pcl::PoinstSYZ& pt, cloud->points)
 	{
 		if (!std::isnan(x) && !std::isnan(y) && !std::isnan(z))
 		{
-			
+			//Test to ensure the point is within the aceptable box.
+        		if (-pt.y > min_y_ && -pt.y < max_y_ && pt.x < max_x_ && pt.x > min_x_ && pt.z < max_z_)
+        		{
+          		//Add the point to the totals
+				x += pt.x;
+				y += pt.y;
+				z += pt.z;
+				n++;
+        		}
 		}
 	}
+
+	//If there are points, find the centroid and calculate the command goal.
+    	//If there are no points, simply publish a stop goal.
+    	if (n)
+    	{ 
+		x /= n; 
+	 	y /= n; 
+	 	z /= n;  
+	 
+	 	ROS_DEBUG("Centriod at %f %f %f with %d points", x, y, z, n);
+	 
+	 	geometry_msgs::Twist cmd;
+	 	cmd.linear.x = (z - goal_z_) * z_scale_;
+	 	cmd.angular.z = -x * x_scale_;
+	 	cmdpub_.publish(cmd);
+    	}
+    	else
+    	{
+	 	ROS_DEBUG("No points detected, stopping the robot");
+		state = -1;
+		//cmdpub_.publish(geometry_msgs::Twist());
+    	}
 }
 
 int main(int argc, char **argv){
@@ -118,6 +154,7 @@ int main(int argc, char **argv){
 	// Set up the subscriber(s)
 	ros::Subscriber sub1 = n.subscribe("/turtlebot_node/sensor_state", 1000, bumpCallBack);
 	ros::Subscriber sub3 = n.subscribe("/blobs", 5, blobsCallBack);
+	ros::Subscriber sub2 = n.subscribe("/camera/depth/points", 5, cloudCallBack);
 
 	// Set up the publisher(s)
 	ros::Publisher twist_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
@@ -160,7 +197,7 @@ int main(int argc, char **argv){
 		else if (state == -1) // stopped
 		{
 			current++;
-			t.linear.x = -0.6; t.linear.y = 0; t.linear.z = 0;
+			t.linear.x = 0; t.linear.y = 0; t.linear.z = 0;
 			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;
 			state = -2;
 		}		

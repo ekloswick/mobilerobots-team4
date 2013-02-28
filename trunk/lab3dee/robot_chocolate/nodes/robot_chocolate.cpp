@@ -20,6 +20,20 @@
 bool bump = false;
 int state = 0;
 unsigned int red = 0, green = 0, blue = 0;
+unsigned int timer = 0;
+float rando = 1.0;
+
+//X,Y,Z of the centroid
+double x = 0.0, y = 0.0, z = 0.0;
+double min_y_ = 0.0;
+double max_y_ = 0.4;
+double min_x_ = -0.2;
+double max_x_ = 0.2;
+double max_z_ = 0.5;
+double goal_z_ = 0.3;
+double z_scale_ = 1.0;
+double x_scale_ = 5.0;
+
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 /**
@@ -36,14 +50,14 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 	for (int i = 0; i < blobsIn.blob_count; ++i)
 	{
 		// check for thin "false postiive" blobs
-		if (blobsIn.blobs[i].area < 50)
+		if (blobsIn.blobs[i].area < 100)
 		{
 			continue;
 		}
 
 		if (blobsIn.blobs[i].red == red && blobsIn.blobs[i].green == green && blobsIn.blobs[i].blue == blue)
 		{
-			if (state < 0)
+			if (state < 0 || state > 3)
 				return;
 
 			// check if the bot is too close
@@ -84,7 +98,7 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 		}
 	}
 
-	// if blobs take half of screen width, back up
+	// if blobs take half of screen width (blob is found), back up
 	if (highestX - lowestX < 0) {}
 	else if (highestX - lowestX > blobsIn.image_width * 0.4)
 	{
@@ -92,24 +106,20 @@ void blobsCallBack(const cmvision::Blobs& blobsIn) {
 	}
 }
 
-void cloudCallBack(const pcl::PointCloud::ConstPtr& cloud)
+void cloudCallBack(const PointCloud::ConstPtr& cloud)
 {
-	//X,Y,Z of the centroid
-	double x = 0.0;
-	double y = 0.0;
-	double z = 0.0;
-
-	//Number of points observed
+	x = 0.0; y = 0.0; z = 0.0;
+	// Number of points observed
 	unsigned int n = 0;
 
-	BOOST_FOREACH(const pcl::PoinstSYZ& pt, cloud->points)
+	BOOST_FOREACH(const pcl::PointXYZ& pt, cloud->points)
 	{
 		if (!std::isnan(x) && !std::isnan(y) && !std::isnan(z))
 		{
-			//Test to ensure the point is within the aceptable box.
+			// Test to ensure the point is within the aceptable box.
         		if (-pt.y > min_y_ && -pt.y < max_y_ && pt.x < max_x_ && pt.x > min_x_ && pt.z < max_z_)
         		{
-          		//Add the point to the totals
+          		// Add the point to the totals
 				x += pt.x;
 				y += pt.y;
 				z += pt.z;
@@ -118,49 +128,61 @@ void cloudCallBack(const pcl::PointCloud::ConstPtr& cloud)
 		}
 	}
 
-	//If there are points, find the centroid and calculate the command goal.
-    	//If there are no points, simply publish a stop goal.
-    	if (n)
+	// If there are points, find the centroid and calculate the command goal.
+    	// If there are no points, simply publish a stop goal.
+    	if (n > 10000)
     	{ 
 		x /= n; 
 	 	y /= n; 
 	 	z /= n;  
 	 
-	 	ROS_DEBUG("Centriod at %f %f %f with %d points", x, y, z, n);
-	 
-	 	geometry_msgs::Twist cmd;
-	 	cmd.linear.x = (z - goal_z_) * z_scale_;
-	 	cmd.angular.z = -x * x_scale_;
-	 	cmdpub_.publish(cmd);
-    	}
-    	else
-    	{
-	 	ROS_DEBUG("No points detected, stopping the robot");
-		state = -1;
-		//cmdpub_.publish(geometry_msgs::Twist());
+	 	ROS_INFO("z = %f\n", z);
+
+		if (z < 0.3 && state < 5)
+		{
+			if (state == 1 || state == 2 || state == 3) // if detected object is one of our goals
+				state = -1;
+			else
+			{
+				state = 5;
+				rando = (rand()%2-0.5)*2.0;
+			}
+		}
     	}
 }
 
 int main(int argc, char **argv){
 	
-	//srand(time(NULL));
+	srand(time(NULL));
 
-	ROS_INFO("Starting kinect_intro.cpp");
-	ros::init(argc, argv, "kinect_intro");// Allows ros to read arguments passed in.
-	
+	ROS_INFO("Starting robot_chocolate.cpp");
+	ros::init(argc, argv, "robot_chocolate");// Allows ros to read arguments passed in.
+	ROS_INFO("1");
 	// Create handle that will be used for both subscribing and publishing. Also, use this to get variables from the comand line.
-	ros::NodeHandle n;	
-	
+	ros::NodeHandle n;
+
+	// if any params passed in, set them, else keep at default values
+	if (n.getParam("min_y_", min_y_)) {}
+	if (n.getParam("max_y_", max_y_)) {}
+	if (n.getParam("min_x_", min_x_)) {}
+	if (n.getParam("max_x_", max_x_)) {}
+	if (n.getParam("max_z_", max_z_)) {}
+	if (n.getParam("goal_z_", goal_z_)) {}
+	if (n.getParam("z_scale_", z_scale_)) {}
+	if (n.getParam("x_scale_", x_scale_)) {}
+
+	ROS_INFO("2");
 	// Set up the subscriber(s)
 	ros::Subscriber sub1 = n.subscribe("/turtlebot_node/sensor_state", 1000, bumpCallBack);
 	ros::Subscriber sub3 = n.subscribe("/blobs", 5, blobsCallBack);
 	ros::Subscriber sub2 = n.subscribe("/camera/depth/points", 5, cloudCallBack);
-
+	ROS_INFO("3");
 	// Set up the publisher(s)
 	ros::Publisher twist_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
 	
   	// Set the loop frequency in Hz.
-	ros::Rate loop_rate(2);
+	int hertz = 5;
+	ros::Rate loop_rate(hertz);
 	
 	// Set up our movement.
 	geometry_msgs::Twist t;
@@ -169,58 +191,155 @@ int main(int argc, char **argv){
 	std::string bacon; 			
 	n.getParam("seek_visit_order", bacon);
 
-	// parse the parameter
-	int order [3];
-	int current = 0;
-	order[0] = atoi(bacon.substr(0,1).c_str());
-	order[1] = atoi(bacon.substr(2,1).c_str());
-	order[2] = atoi(bacon.substr(4,1).c_str());
+	ROS_INFO("4");
 
+	// current number of blob to go to
+	int current = 0;
+
+	// read in blob params
+	// we know the format of bacon must always be "1 3 2 3 1" with an odd number of characaters
+	// make baconsize an even number, then divide that number by two to find how many blobs to find
+	int baconsize = bacon.length();
+	if (baconsize % 2 == 1) 
+	{
+		baconsize = (baconsize + 1)/2;
+	}
+
+	std::vector<int> order;
+	for(int i = 0; i < baconsize; i++)
+	{
+		order.push_back(atoi(bacon.substr(i*2,1).c_str()));
+	}
+	
+	ROS_INFO("5");
 
 	while (ros::ok()) //runtime loop
 	{
+		ROS_INFO("State = %d, Current = %d, order.size() = %d, Rando = %f\n", state, order[current], order.size(), rando);
 		// state: 0 = search, 1 = turn left towards blob, 2 = turn right towards blob, 3 = straight towards blob
-		// state: -1 = stopped, <-1 = going backwards	
-		if (state < -1) // going backwards
+		// state: 4 = backup then randturn, 5 = randoturn + forward, 6 = backup then search, 7 = ???
+		// state: -1 = stopped	
+		if (state == -1) // stopped
 		{
-			t.linear.x = -0.6; t.linear.y = 0; t.linear.z = 0;
-			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;
-			state--;
+			t.linear.x = 0;
+			t.angular.z = 0;
 
-			if (state <= -5)
+			// if all waypoints have been found
+			if (current >= order.size())
+				exit(1);
+			else
 			{
-				state = 0;
-				if (current == 3)
-					exit(1);
+				++current;
+				state = 5;
+				rando = (rand()%2-0.5)*2.0;
 			}
-		}	
-		else if (state == -1) // stopped
-		{
-			current++;
-			t.linear.x = 0; t.linear.y = 0; t.linear.z = 0;
-			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;
-			state = -2;
 		}		
-		if (state == 0) // turn until color is found
+		else if (state == 0) // turn until color is found (search)
 		{
+			++timer;
 			t.linear.x = 0; t.linear.y = 0; t.linear.z = 0;
-			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0.2;
+			t.angular.x = 0; t.angular.y = 0; t.angular.z = rando*0.4;
+
+			if (timer >= 15*hertz)
+			{
+				timer = 0;
+				state = 5;
+				rando = (rand()%2-0.5)*2.0;
+			}
 		}
-		else if (state == 1)// turn left towards the found color
+		else if (state == 1) // turn left towards the found color
 		{
-			t.linear.x = 0.1; t.linear.y = 0; t.linear.z = 0;
-			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0.1;	
+			t.linear.x = 0.1;
+			t.angular.z = 0.1;	
+
+			if (bump == true)
+			{
+				timer = 0;
+				state = 4;
+				bump = false;
+			}
 		}
-		else if (state == 2)// turn right towards the found color
+		else if (state == 2) // turn right towards the found color
 		{
 			t.linear.x = 0.1; t.linear.y = 0; t.linear.z = 0;
 			t.angular.x = 0; t.angular.y = 0; t.angular.z = -0.1;	
+		
+			if (bump == true)
+			{
+				timer = 0;
+				state = 4;
+				bump = false;
+			}			
 		}
-		else if (state == 3)// go towards the found color
+		else if (state == 3) // go towards the found color
 		{
-			t.linear.x = 0.2; t.linear.y = 0; t.linear.z = 0;
-			t.angular.x = 0; t.angular.y = 0; t.angular.z = 0;	
+			t.linear.x = 0.2;
+			t.angular.z = 0;
+
+			if (bump == true)
+			{
+				timer = 0;
+				state = 4;
+				bump = false;
+			}	
 		}
+		else if (state == 4) // backup mode
+		{
+			++timer;
+			t.linear.x = -0.3;
+			t.angular.z = 0;
+			
+			if (timer >= hertz)
+			{
+				timer = 0;
+				state = 5;
+				rando = (rand()%2-0.5)*2.0;
+			}
+		}
+		else if (state == 5) // rando_turn + small_forward mode
+		{		
+			++timer;
+	
+			if (bump == true) // if bumped, go to backup_search
+			{
+				timer = 0;
+				state = 6;
+				bump = false;
+			}
+			else if (timer <= hertz) // rando turn
+			{	
+				t.linear.x = 0;
+				t.angular.z = rando;
+			}
+			else if (timer < 4*hertz) // small forward
+			{
+				t.linear.x = 0.2;
+				t.angular.z = 0;
+			}
+			else if (timer >= 4*hertz) // go to search
+			{
+				timer = 0;
+				state = 0;
+			}
+		}
+		else if (state == 6) // backup_search mode
+		{
+			++timer;
+			t.linear.x = -0.3;
+			t.angular.z = 0;
+			
+			if (timer >= hertz)
+			{
+				timer = 0;
+				state = 0;
+			}
+		}
+		else if (state == 7) // follower mode
+		{
+		 	t.linear.x = (z - goal_z_) * z_scale_;
+		 	t.angular.z = -x * x_scale_;
+		}
+
 
 		// orange
 		if (order[current] == 1)

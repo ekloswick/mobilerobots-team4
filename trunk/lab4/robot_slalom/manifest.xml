@@ -1,0 +1,20 @@
+<package>
+  <description brief="robot_slalom">
+
+     robot_slalom
+
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/robot_slalom</url>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="turtlebot_node"/>
+  <depend package="cmvision"/>
+  <depend package="pcl"/>
+  <depend package="pcl_ros"/>
+
+</package>
+
+
